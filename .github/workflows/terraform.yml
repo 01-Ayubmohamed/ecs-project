@@ -21,6 +21,9 @@ jobs:
         plan: 
             name: Terraform Plan
             runs-on: ubuntu-latest
+            defaults:
+                run:
+                    working-directory: ./infra
 
             steps:
                 - name: Checkout repository
@@ -62,11 +65,14 @@ jobs:
                   uses: actions/upload-artifact@v4
                   with:
                       name: tfplan
-                      path: tfplan
+                      path: ./infra/tfplan
 
         apply:
             name: Terraform Apply
             runs-on: ubuntu-latest
+            defaults:
+                run:
+                    working-directory: ./infra
             if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
             needs: plan
 
@@ -92,6 +98,7 @@ jobs:
                   uses: actions/download-artifact@v4
                   with:
                       name: tfplan
+                      path: infra
 
                 - name: Terraform Apply
                   run: terraform apply -auto-approve tfplan

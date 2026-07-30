@@ -21,6 +21,9 @@ jobs:
     destroy: 
         name: Terraform Destroy
         runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./infra
         steps:
             - name: Verify Confirmation
               run: |
