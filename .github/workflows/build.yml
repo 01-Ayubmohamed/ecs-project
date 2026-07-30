@@ -1,0 +1,71 @@
+name: Docker Build and Push
+
+on:
+  push:
+    branches:
+      - main
+
+
+concurrency: 
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+    id-token: write
+    contents: read
+
+  
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+
+jobs:
+ build:
+  name: Build and Push Docker Image 
+  runs-on: ubuntu-latest 
+
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Build Docker image
+      run: |
+        docker build -t ${{ env.ECR_REPOSITORY }}:${{ github.sha }} -f app/Dockerfile .
+
+    - name: Scan image with Grype
+      uses: anchore/scan-action@v6
+      with:
+        image: "${{ env.ECR_REPOSITORY }}:${{ github.sha }}"
+        fail-build: "true"
+        severity-cutoff: high
+        output-format: table
+
+        
+    - name: Configure AWS credentials (OIDC)
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: ${{ secrets.BUILD_ROLE_ARN }}
+        aws-region: ${{ env.AWS_REGION }}
+
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: tag and push image to ECR 
+      env: 
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+          docker tag ${{ env.ECR_REPOSITORY }}:${{ github.sha }} $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          docker tag ${{ env.ECR_REPOSITORY }}:${{ github.sha }} $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest
+          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest
+
+          echo "### Image pushed :white_check_mark:" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+
+    
+
+
+
+        

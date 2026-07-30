@@ -1,0 +1,55 @@
+name: Terraform destroy Pipeline
+
+
+on: 
+    workflow_dispatch: 
+        inputs:
+            confirm:
+                description: 'Type "yes" to confirm the destroy action'
+                required: true
+                default: 'no'
+
+concurrency:
+    group: terraform-destroy
+    cancel-in-progress: true
+
+permissions:
+    id-token: write
+    contents: read
+
+jobs: 
+    destroy: 
+        name: Terraform Destroy
+        runs-on: ubuntu-latest
+        steps:
+            - name: Verify Confirmation
+              run: |
+                if [ "${{ github.event.inputs.confirm }}" != "yes" ]; then
+                  echo "Destroy action not confirmed. Exiting."
+                  exit 1
+                fi
+                
+            - name: Checkout repository
+              uses: actions/checkout@v3
+
+            - name: Configure AWS credentials (OIDC)
+              uses: aws-actions/configure-aws-credentials@v2
+              with:
+                  role-to-assume: ${{ secrets.TERRAFORM_ROLE_ARN }}
+                  aws-region: ${{ vars.AWS_REGION }}
+
+            - name: Set up Terraform
+              uses: hashicorp/setup-terraform@v2
+              with:
+                  terraform_version: 1.15.8
+
+            - name: Terraform Init
+              run: terraform init
+
+
+
+            - name: Terraform plan
+              run: terraform plan -destroy -out=tfplan
+
+            - name: Terraform Destroy
+              run: terraform apply -auto-approve tfplan
