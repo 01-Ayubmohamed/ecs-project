@@ -1,0 +1,17 @@
+app/.examples
+app/docs
+app/gatus
+app/LICENSE
+app/README.md
+app/Makefile
+app/.github
+app/.gitignore
+app/.gitattributes
+infra
+bootstrap
+.git
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log

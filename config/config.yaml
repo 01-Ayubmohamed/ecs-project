@@ -1,0 +1,28 @@
+endpoints:
+  - name: app-health
+    group: app
+    url: "https://tm.ayubcoderco.com/health"
+    interval: 30s
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY].status == UP"
+
+
+  - name: Github
+    group: External
+    url: "https://github.com/"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY] == pat(*GitHub*)"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+
+  - name: Premier-League
+    group: External
+    url: "https://premierleague.com/"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY] == pat(*Premier-League*)"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
