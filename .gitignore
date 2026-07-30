@@ -1,0 +1,11 @@
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+
+app/web/app/
+
+.DS_Store
+.vscode/
+.idea/
