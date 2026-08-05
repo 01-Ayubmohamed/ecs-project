@@ -52,6 +52,16 @@ jobs:
                 - name: Terraform Validate
                   run: terraform validate
 
+
+                - name: Setup TFlint 
+                  uses: terraform-linters/setup-tflint@v6
+                  with:
+                      tflint_version: latest
+
+
+                - name: Terraform TFLint
+                  run: tflint --init && tflint
+
                 - name: Security Scan 
                   uses: bridgecrewio/checkov-action@v12
                   with:

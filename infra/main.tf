@@ -8,15 +8,15 @@ module "VPC" {
 
 
 module "ALB" {
-  source          = "./modules/alb"
-  vpc_id          = module.VPC.vpc_id
-  subnet_ids      = module.VPC.public_subnet_ids
-  name            = var.name
-  alb_sg          = var.alb_sg
-  certificate_arn = module.ACM.certificate_arn
-  domain_name     = var.domain_name
+  source           = "./modules/alb"
+  vpc_id           = module.VPC.vpc_id
+  subnet_ids       = module.VPC.public_subnet_ids
+  name             = var.name
+  alb_sg           = var.alb_sg
+  certificate_arn  = module.ACM.certificate_arn
+  domain_name      = var.domain_name
   hosted_zone_name = var.hosted_zone_name
-  
+
 
 }
 
