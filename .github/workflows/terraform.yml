@@ -27,10 +27,10 @@ jobs:
 
             steps:
                 - name: Checkout repository
-                  uses: actions/checkout@v3
+                  uses: actions/checkout@v7
 
                 - name: Configure AWS credentials (OIDC)
-                  uses: aws-actions/configure-aws-credentials@v2
+                  uses: aws-actions/configure-aws-credentials@v6
                   with:
                       role-to-assume: ${{ secrets.TERRAFORM_ROLE_ARN }}
                       aws-region: ${{ vars.AWS_REGION }}
@@ -39,7 +39,7 @@ jobs:
                 
 
                 - name: Set up Terraform
-                  uses: hashicorp/setup-terraform@v2
+                  uses: hashicorp/setup-terraform@v4
                   with:
                       terraform_version: 1.15.8
 
@@ -56,7 +56,7 @@ jobs:
                 - name: Setup TFlint 
                   uses: terraform-linters/setup-tflint@v6
                   with:
-                      tflint_version: latest
+                      tflint_version: v0.64.0
 
 
                 - name: Terraform TFLint
@@ -72,7 +72,7 @@ jobs:
                   run: terraform plan -out=tfplan
                 
                 - name: Upload Terraform Plan
-                  uses: actions/upload-artifact@v4
+                  uses: actions/upload-artifact@v7
                   with:
                       name: tfplan
                       path: ./infra/tfplan
@@ -88,24 +88,24 @@ jobs:
 
             steps:
                 - name: Checkout repository
-                  uses: actions/checkout@v3
+                  uses: actions/checkout@v7
 
                 - name: Configure AWS credentials (OIDC)
-                  uses: aws-actions/configure-aws-credentials@v2
+                  uses: aws-actions/configure-aws-credentials@v6
                   with:
                       role-to-assume: ${{ secrets.TERRAFORM_ROLE_ARN }}
                       aws-region: ${{ vars.AWS_REGION }}
 
                 - name: Set up Terraform
-                  uses: hashicorp/setup-terraform@v2
+                  uses: hashicorp/setup-terraform@v4
                   with:
-                      terraform_version: 1.15.8 
+                      terraform_version: 1.15.8
 
                 - name: Terraform Init
                   run: terraform init
 
                 - name: Download Terraform Plan
-                  uses: actions/download-artifact@v4
+                  uses: actions/download-artifact@v7
                   with:
                       name: tfplan
                       path: infra
