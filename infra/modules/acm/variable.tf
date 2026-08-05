@@ -13,3 +13,4 @@ variable "hosted_zone_name" {
     type       = string
     description = "Root domain for Route 53 hosted zone"
 }
+

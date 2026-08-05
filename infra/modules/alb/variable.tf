@@ -30,3 +30,13 @@ variable "certificate_arn" {
   type        = string
   default     = ""
 }
+
+variable "domain_name" {
+    type       = string
+    description = "Domain ACM certificate will cover"
+}
+
+variable "hosted_zone_name" {
+    type       = string
+    description = "Root domain for Route 53 hosted zone"
+}

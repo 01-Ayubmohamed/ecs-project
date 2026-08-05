@@ -14,6 +14,9 @@ module "ALB" {
   name            = var.name
   alb_sg          = var.alb_sg
   certificate_arn = module.ACM.certificate_arn
+  domain_name     = var.domain_name
+  hosted_zone_name = var.hosted_zone_name
+  
 
 }
 
