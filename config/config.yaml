@@ -18,11 +18,11 @@ endpoints:
       - "[CERTIFICATE_EXPIRATION] > 48h"
 
 
-  - name: Premier-League
+  - name: Terraform-Registry
     group: External
-    url: "https://premierleague.com/"
+    url: "https://registry.terraform.io/"
     interval: 5m
     conditions:
       - "[STATUS] == 200"
-      - "[BODY] == pat(*Premier-League*)"
+      - "[BODY] == pat(*Terraform*)"
       - "[CERTIFICATE_EXPIRATION] > 48h"
