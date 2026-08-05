@@ -63,6 +63,5 @@ variable "desired_count" {
 variable "container_port" {
     description = "Port on which the container listens"
     type        = number
-    default     = 8080
 }
 

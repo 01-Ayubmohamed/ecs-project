@@ -52,4 +52,5 @@ container_name   = "gatus"
 container_image  = "ghcr.io/twin/gatus:latest"
 container_cpu    = 256
 container_memory = 512
+container_port   = 8080
 desired_count    = 1

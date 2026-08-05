@@ -41,6 +41,7 @@ module "ECS" {
   container_image        = var.container_image
   container_cpu          = var.container_cpu
   container_memory       = var.container_memory
+  container_port         = var.container_port
   desired_count          = var.desired_count
 }
 
