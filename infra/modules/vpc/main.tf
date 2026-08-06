@@ -6,6 +6,14 @@ resource "aws_vpc" "main" {
   }
 }
 
+resource "aws_default_security_group" "vpc_sg" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "${var.name}-vpc-sg-locked-down"
+  }
+}
+
 data "aws_availability_zones" "available" {
   state = "available"
 }
@@ -15,7 +23,7 @@ resource "aws_subnet" "public_subnet" {
     for_each = { for idx, ps in var.public_subnets : data.aws_availability_zones.available.names[idx] => ps }
     cidr_block = each.value.cidr_block
     availability_zone = each.key
-    map_public_ip_on_launch = true
+    map_public_ip_on_launch = false
     tags = {
       Name = "${var.name}-public-subnet-${each.key}"
     }
