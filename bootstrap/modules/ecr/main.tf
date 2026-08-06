@@ -6,6 +6,12 @@ resource "aws_ecr_repository" "main" {
   image_scanning_configuration {
     scan_on_push = true
   }
+
+  encryption_configuration {
+    encryption_type = "KMS"
+    kms_key = "alias/aws/ecr"
+  }
+
 }
 
 
