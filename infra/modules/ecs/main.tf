@@ -39,6 +39,7 @@ resource "aws_ecs_cluster_capacity_providers" "gatus_cp" {
 
 resource "aws_security_group" "ecs_sg" {
     name        = "${var.name}-ecs-sg"
+    description = "Security group for ECS tasks"
     vpc_id      =  var.vpc_id
 
   ingress {
@@ -46,15 +47,18 @@ resource "aws_security_group" "ecs_sg" {
     to_port         = var.container_port
     protocol        = "tcp"
     security_groups = [var.alb_sg]
+    description     = "Allow inbound traffic from ALB to ECS tasks"
   }
 
   egress {
-    from_port   = var.container_port
-    to_port     = var.container_port
-    protocol    = "tcp"
-    cidr_blocks = [var.cidr_block]
+  from_port   = 443
+  to_port     = 443
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+  description = "Allow outbound HTTPS traffic"
   }
 }
+
 
 resource "aws_ecs_task_definition" "gatus_task" {
   family                   = "${var.name}-task"
