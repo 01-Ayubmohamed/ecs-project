@@ -11,7 +11,7 @@ module "ALB" {
   source           = "./modules/alb"
   vpc_id           = module.VPC.vpc_id
   subnet_ids       = module.VPC.public_subnet_ids
-  cidr_block      = var.cidr_block
+  cidr_block       = var.cidr_block
   name             = var.name
   alb_sg           = var.alb_sg
   certificate_arn  = module.ACM.certificate_arn
