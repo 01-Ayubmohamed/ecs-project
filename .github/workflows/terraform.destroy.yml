@@ -26,12 +26,14 @@ jobs:
                 working-directory: ./infra
         steps:
             - name: Verify Confirmation
+              env:
+                CONFIRM_INPUT: ${{ github.event.inputs.confirm }}
               run: |
-                if [ "${{ github.event.inputs.confirm }}" != "yes" ]; then
-                  echo "Destroy action not confirmed. Exiting."
+                if [ "$CONFIRM_INPUT" != "yes" ]; then
+                  echo "Destroy action failed to confirm with 'yes'. Aborting."
                   exit 1
                 fi
-                
+
             - name: Checkout repository
               uses: actions/checkout@v7
 
