@@ -31,6 +31,12 @@ variable "alb_sg" {
   }))
 }
 
+variable "container_port" {
+  description = "Port on which the container listens"
+  type        = number
+}
+
+
 variable "certificate_arn" {
   description = "ARN of the SSL certificate for the ALB"
   type        = string

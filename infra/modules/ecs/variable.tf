@@ -3,6 +3,11 @@ variable "vpc_id" {
     type        = string
 }
 
+variable "cidr_block" {
+  type        = string
+  description = "cidr block for VPC"
+}
+
 variable "subnet_ids" {
     description = "List of subnet IDs for the ECS cluster"
     type        = list(string)

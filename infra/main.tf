@@ -14,6 +14,7 @@ module "ALB" {
   cidr_block       = var.cidr_block
   name             = var.name
   alb_sg           = var.alb_sg
+  container_port   = var.container_port
   certificate_arn  = module.ACM.certificate_arn
   domain_name      = var.domain_name
   hosted_zone_name = var.hosted_zone_name
@@ -32,6 +33,7 @@ module "ACM" {
 module "ECS" {
   source                 = "./modules/ecs"
   vpc_id                 = module.VPC.vpc_id
+  cidr_block             = var.cidr_block
   subnet_ids             = module.VPC.private_subnet_ids
   name                   = var.name
   alb_sg                 = module.ALB.alb_sg_id
@@ -44,6 +46,7 @@ module "ECS" {
   container_memory       = var.container_memory
   container_port         = var.container_port
   desired_count          = var.desired_count
+
 }
 
 module "IAM" {

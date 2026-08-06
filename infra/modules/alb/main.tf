@@ -48,7 +48,7 @@ resource "aws_lb_target_group" "lb_target_group" {
 
   vpc_id = var.vpc_id
   name = "${var.name}-tg"
-  port = 8080
+  port = var.container_port
   protocol = "HTTP"
   target_type = "ip"
 
@@ -97,12 +97,14 @@ resource "aws_security_group" "alb_sg" {
       to_port     = port.value.port
       protocol    = port.value.protocol
       cidr_blocks = port.value.cidr_blocks
+      description = port.value.description
+
   }
  }
 
   egress {
-    from_port   = 8080
-    to_port     = 8080
+    from_port   = var.container_port
+    to_port     = var.container_port
     protocol    = "tcp"
     cidr_blocks = [var.cidr_block]
     description = "Allow outbound traffic to ECS tasks"
