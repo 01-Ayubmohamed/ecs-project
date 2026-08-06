@@ -6,6 +6,7 @@ resource "aws_lb" "main" {
   subnets            = var.subnet_ids
 
   enable_deletion_protection = false
+  drop_invalid_header_fields = true
 
   tags = {
     Name = "${var.name}-alb"
@@ -100,10 +101,11 @@ resource "aws_security_group" "alb_sg" {
  }
 
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = [var.cidr_block]
+    description = "Allow outbound traffic to ECS tasks"
     }
 
   tags = {

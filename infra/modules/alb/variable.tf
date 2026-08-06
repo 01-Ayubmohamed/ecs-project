@@ -4,6 +4,12 @@ variable "vpc_id" {
   type        = string
 }
 
+variable "cidr_block" {
+  type        = string
+  description = "cidr block for VPC"
+}
+
+
 variable "name" {
   type = string
   default = "gatus"
