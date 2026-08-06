@@ -14,12 +14,13 @@ resource "aws_s3_bucket_versioning" "terraform_state_bv" {
   }
 }
 
-resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state_sse" {
+resource "aws_s3_bucket_server_side_encryption_configuration" "s3_state_sse" {
   bucket = aws_s3_bucket.terraform_state.id
 
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = "alias/aws/s3"
     }
   }
 }
