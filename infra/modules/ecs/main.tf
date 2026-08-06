@@ -42,6 +42,7 @@ resource "aws_security_group" "ecs_sg" {
     description = "Security group for ECS tasks"
     vpc_id      =  var.vpc_id
 
+
   ingress {
     from_port       = var.container_port 
     to_port         = var.container_port
@@ -57,6 +58,11 @@ resource "aws_security_group" "ecs_sg" {
   cidr_blocks = ["0.0.0.0/0"]
   description = "Allow outbound HTTPS traffic"
   }
+
+  tags = {
+    Name = "${var.name}-ecs-sg"
+  }
+
 }
 
 
