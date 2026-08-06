@@ -36,6 +36,17 @@ resource "aws_s3_bucket_lifecycle_configuration" "terraform_state_lifecycle" {
 
     status = "Enabled"
   }
+
+  rule {
+    id = "Expire incomplete multipart uploads"
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+
+    status = "Enabled"
+  }
+
 }
 
 resource "aws_s3_bucket_public_access_block" "terraform_state_pab" {
