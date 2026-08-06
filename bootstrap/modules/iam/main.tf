@@ -101,15 +101,45 @@ data "aws_iam_policy_document" "deploy_permissions" {
   }
 
   statement {
-    sid    = "ECSDeployment"
+    sid    = "ECSServiceAccess"
+    effect = "Allow"
+    actions = [
+      "ecs:UpdateService",
+      "ecs:DescribeServices",
+    ]
+    resources = [
+      "arn:aws:ecs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:service/${var.name}-cluster/${var.name}-service"
+    ]
+  }
+
+  statement {
+    sid    = "ECSTaskVisibility"
+    effect = "Allow"
+    actions = [
+      "ecs:ListTasks",
+    ]
+    resources = [
+      "arn:aws:ecs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:cluster/${var.name}-cluster"
+    ]
+  }
+
+  statement {
+    sid    = "ECSTaskDescribe"
+    effect = "Allow"
+    actions = [
+      "ecs:DescribeTasks",
+    ]
+    resources = [
+      "arn:aws:ecs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:task/${var.name}-cluster/*"
+    ]
+  }
+
+  statement {
+    sid    = "ECSTaskDefinition"
     effect = "Allow"
     actions = [
       "ecs:RegisterTaskDefinition",
-      "ecs:UpdateService",
-      "ecs:DescribeServices",
       "ecs:DescribeTaskDefinition",
-      "ecs:DescribeTasks",
-      "ecs:ListTasks",
     ]
     resources = ["*"]
   }
@@ -131,6 +161,7 @@ data "aws_iam_policy_document" "deploy_permissions" {
     resources = ["*"]
   }
 }
+
 
 resource "aws_iam_policy" "build_permissions" {
   name        = "${var.name}-build-permissions"
