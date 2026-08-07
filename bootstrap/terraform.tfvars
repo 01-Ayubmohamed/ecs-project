@@ -3,7 +3,8 @@ name        = "gatus"
 bucket_name = "terraform-gatus-state"
 
 allowed_subjects = [
-  "repo:01-Ayubmohamed/ecs-project:ref:refs/heads/main"
+  "repo:01-Ayubmohamed/ecs-project:ref:refs/heads/main",
+  "repo:01-Ayubmohamed/ecs-project:pull_request"
 ]
 
 ecs_task_role_name           = "gatus-ecs-task-role"
