@@ -1,8 +1,8 @@
-# Self-Hosted Gatus Monitoring on AWS ECS Fargate, provisioned by Terraform & secured with OIDC
+# Self-Hosted Gatus Monitoring on AWS ECS Fargate
 
 ## Overview
 
-This project is a containerised, self-hosted Gatus monitoring app running on AWS ECS Fargate, provisioned entirely through Terraform and deployed via GitHub Actions pipelines. Authentication to AWS uses OIDC, with no static credentials stored anywhere. It's reachable via its own custom domain, resolved through Route 53 and served over HTTPS via an Application Load Balancer.
+This project is a self-hosted Gatus monitoring app, containerised and running on AWS ECS Fargate. It's provisioned through Terraform, deployed via GitHub Actions, authenticated to AWS through OIDC, and reachable on its own custom domain through Route 53.
 
 ## Architecture
 
@@ -12,13 +12,13 @@ This project is a containerised, self-hosted Gatus monitoring app running on AWS
 
 ## Design Features
 
-* **Decoupled Bootstrap and Infra:** Terraform is split into `bootstrap/` (state bucket, ECR, OIDC provider, IAM roles) and `infra/` (VPC, ALB, ECS) to resolve a real ordering problem. The roles a pipeline needs in order to authenticate can't be created by that same pipeline. `bootstrap/` is applied once, manually; everything in `infra/` then runs through CI/CD.
+* **Two Stage Terraform Split:** Terraform is split into `bootstrap/` (state bucket, ECR, OIDC provider, IAM roles) and `infra/` (VPC, ALB, ECS) to resolve a real ordering problem. The roles a pipeline needs in order to authenticate can't be created by that same pipeline. `bootstrap/` is applied once, manually; everything in `infra/` then runs through CI/CD.
 
-* **Keyless CI/CD:** Every pipeline (build, deploy, terraform) authenticates to AWS via GitHub OIDC, each assuming a dedicated IAM role scoped to exactly what it needs, following Role-Based Access Control (RBAC) principles. No static AWS credentials exist anywhere in the repository.
+* **CI/CD Authentication:** Every pipeline (build, deploy, terraform) authenticates to AWS via GitHub OIDC, each assuming a dedicated IAM role scoped to exactly what it needs, following Role-Based Access Control (RBAC) principles. No static AWS credentials exist anywhere in the repository.
 
-* **Immutable, Traceable Images:** ECR images are tagged by commit SHA and cannot be overwritten once pushed, so any running image traces back to the exact commit that built it. No mutable `latest` tag to lose that history.
+* **Immutable SHA Tagged Images:** ECR images are tagged by commit SHA and cannot be overwritten once pushed, so any running image traces back to the exact commit that built it. No mutable `latest` tag to lose that history.
 
-* **Minimal Docker Attack Surface:** The final image builds `FROM scratch` and runs as a non root user, containing only the necessary components. There's no shell, no package manager, nothing for an attacker to exploit even with code execution.
+* **Minimal Attack Surface:** The final image builds `FROM scratch` and runs as a non root user, containing only the necessary components. There's no shell, no package manager, nothing for an attacker to exploit even with code execution.
 
 * **High Availability, Secure Routing:** The ECS service runs across two Availability Zones behind an Application Load Balancer, with HTTP forced to HTTPS via a certificate managed by ACM and validated through Route 53. Security groups are scoped tightly in both directions: only the ALB can reach the tasks, and the tasks reach out only on the ports they need.
 
@@ -32,25 +32,27 @@ This project is a containerised, self-hosted Gatus monitoring app running on AWS
 │       ├── deploy.yml
 │       ├── terraform.yml
 │       └── terraform.destroy.yml
+├── Images/
+│   └── gatus-architecture.png
 ├── app/
 ├── bootstrap/
 │   ├── main.tf
 │   ├── provider.tf
 │   ├── variable.tf
 │   ├── output.tf
+│   ├── terraform.tfvars
 │   └── modules/
 │       ├── s3/
 │       ├── ecr/
 │       └── iam/
 ├── config/
 │   └── config.yaml
-├── Images/
-│   └── gatus-architecture.png
 ├── infra/
 │   ├── main.tf
 │   ├── provider.tf
 │   ├── variable.tf
 │   ├── output.tf
+│   ├── terraform.tfvars
 │   └── modules/
 │       ├── vpc/
 │       ├── acm/
@@ -87,7 +89,6 @@ This project is a containerised, self-hosted Gatus monitoring app running on AWS
 
 - Encryption uses AWS managed KMS keys rather than customer managed ones, avoiding the ongoing per key charge that comes with managing your own.
 
-
 ## Known Limitations
 
 - ALB deletion protection is switched off (`CKV_AWS_150`). Enabling it would block the destroy pipeline from tearing the ALB down, which conflicts directly with having an on demand teardown workflow.
@@ -97,7 +98,6 @@ This project is a containerised, self-hosted Gatus monitoring app running on AWS
 - The destroy workflow's confirmation input (`CKV_GHA_7`) is a deliberate safety gate requiring someone to type `yes` before anything gets destroyed, not a flaw. The real injection risk was already fixed by passing it through an environment variable.
 
 - CloudWatch log group encryption uses the default rather than a customer managed KMS key (`CKV_AWS_158`). Unlike S3 and ECR, which have a free AWS managed key available, CloudWatch Logs would need a dedicated key and key policy for real ongoing cost.
-
 
 ## Prerequisites
 
