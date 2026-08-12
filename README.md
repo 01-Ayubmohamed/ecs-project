@@ -16,9 +16,9 @@ This project is a self-hosted Gatus monitoring app, containerised and running on
 
 * **CI/CD Authentication:** Every pipeline (build, deploy, terraform) authenticates to AWS via GitHub OIDC, each assuming a dedicated IAM role scoped to exactly what it needs, following Role-Based Access Control (RBAC) principles. No static AWS credentials exist anywhere in the repository.
 
-* **Immutable, Traceable Images:** ECR images are tagged by commit SHA and cannot be overwritten once pushed, so any running image traces back to the exact commit that built it. No mutable `latest` tag to lose that history.
+* **Immutable SHA Tagged Images:** ECR images are tagged by commit SHA and cannot be overwritten once pushed, so any running image traces back to the exact commit that built it. No mutable `latest` tag to lose that history.
 
-* **Minimal Docker Attack Surface:** The final image builds `FROM scratch` and runs as a non root user, containing only the necessary components. There's no shell, no package manager, nothing for an attacker to exploit even with code execution.
+* **Minimal Attack Surface:** The final image builds `FROM scratch` and runs as a non root user, containing only the necessary components. There's no shell, no package manager, nothing for an attacker to exploit even with code execution.
 
 * **High Availability, Secure Routing:** The ECS service runs across two Availability Zones behind an Application Load Balancer, with HTTP forced to HTTPS via a certificate managed by ACM and validated through Route 53. Security groups are scoped tightly in both directions: only the ALB can reach the tasks, and the tasks reach out only on the ports they need.
 
