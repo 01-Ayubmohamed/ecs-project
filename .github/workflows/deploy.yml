@@ -19,7 +19,8 @@ env:
   ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}       
   ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
   ECS_SERVICE: ${{ vars.ECS_SERVICE }}
-  CONTAINER_NAME: ${{ vars.CONTAINER_NAME }}    
+  CONTAINER_NAME: ${{ vars.CONTAINER_NAME }} 
+  DOMAIN_URL: ${{ vars.DOMAIN_URL }}
 
 jobs:
   auth:
@@ -66,3 +67,10 @@ jobs:
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
+
+      - name: verify Health on deployment 
+        run: |
+          if ! curl -sf ${{ env.DOMAIN_URL }}/health; then
+            echo "Health check failed after deployment"
+            exit 1
+          fi
