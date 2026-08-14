@@ -12,7 +12,7 @@ This project is a self-hosted Gatus monitoring app, containerised and running on
 
 ## Design Features
 
-* **Two Stage Terraform Split:** Terraform is split into `bootstrap/` (state bucket, ECR, OIDC provider, IAM roles) and `infra/` (VPC, ALB, ECS) to resolve a real ordering problem. The roles a pipeline needs in order to authenticate can't be created by that same pipeline. `bootstrap/` is applied once, manually; everything in `infra/` then runs through CI/CD.
+* **Two Stage Terraform Split:** Terraform is split into `bootstrap/` (state bucket, ECR, OIDC provider, IAM roles) and `infra/` (VPC, ALB, ECS) to resolve a real ordering problem. The roles a pipeline needs in order to authenticate can't be created by that same pipeline. `bootstrap/` is applied once manually, everything in `infra/` then runs through CI/CD.
 
 * **CI/CD Authentication:** Every pipeline (build, deploy, terraform) authenticates to AWS via GitHub OIDC, each assuming a dedicated IAM role scoped to exactly what it needs, following Role-Based Access Control (RBAC) principles. No static AWS credentials exist anywhere in the repository.
 
@@ -101,6 +101,26 @@ This project is a self-hosted Gatus monitoring app, containerised and running on
 
 ## Prerequisites
 
-## Deployment Implementation
+* **1. AWS Account and CLI:** Sign up at aws.amazon.com if you don't already have one, the free tier covers everything here. Create an IAM user with the necessary permissions, then install the AWS CLI from docs.aws.amazon.com/cli and configure it locally.
+
+`aws configure`
+`aws sts get-caller-identity`
+Outcome: prints your Account ID, User ID, and ARN, confirming the CLI is authenticated.
+
+* **2. Terraform:** Install from developer.hashicorp.com/terraform/install, matching the `~> 1.15` version this project targets.
+
+`terraform --version`
+Outcome: `Terraform v1.15.x`
+
+* **3. Docker:** Docker Desktop (Mac/Windows) or Docker Engine (Linux), used to build and test the image locally. Install from docs.docker.com/get-docker.
+
+`docker --version`
+Outcome: prints a version string. If you instead see `Cannot connect to the Docker daemon`, the engine isn't running yet.
+
+* **4. GitHub:** Create a free account at github.com if you don't already have one, used to host the repository and run the pipelines.
+
+* **5. Route 53 Domain:** A registered domain with an existing Route 53 hosted zone, needed for the ACM certificate and DNS record `infra/` creates.
+
+## Deployment Setup
 
 ## Future Improvements
