@@ -81,12 +81,6 @@ resource "aws_route_table_association" "private_rt_assoc" {
 }
 
 
-resource "aws_eip" "nat" {
-  domain = "vpc"
-  tags = {
-    Name = "${var.name}-nat-eip"
-  }
-}
 
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
@@ -97,9 +91,9 @@ resource "aws_internet_gateway" "main" {
 }
 
 resource "aws_nat_gateway" "main" {
-  allocation_id = aws_eip.nat.id
-  subnet_id     = values(aws_subnet.public_subnet)[0].id
+  vpc_id     = aws_vpc.main.id
   depends_on = [aws_internet_gateway.main]
+  availability_mode = "regional"
 
   tags = {
     Name = "${var.name}-nat-gw"
