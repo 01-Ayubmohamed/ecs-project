@@ -26,14 +26,14 @@ jobs:
 
   steps:
     - name: Checkout code
-      uses: actions/checkout@v7
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
     
     - name: Build Docker image
       run: |
         docker build -t ${{ env.ECR_REPOSITORY }}:${{ github.sha }} -f Dockerfile .
 
     - name: Scan image with Grype
-      uses: anchore/scan-action@v7.4.0
+      uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2
       with:
         image: "${{ env.ECR_REPOSITORY }}:${{ github.sha }}"
         fail-build: "true"
@@ -42,7 +42,7 @@ jobs:
 
         
     - name: Configure AWS credentials (OIDC)
-      uses: aws-actions/configure-aws-credentials@v6
+      uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c
       with:
         role-to-assume: ${{ secrets.BUILD_ROLE_ARN }}
         aws-region: ${{ env.AWS_REGION }}
@@ -50,7 +50,7 @@ jobs:
 
     - name: Login to Amazon ECR
       id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
+      uses: aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64
 
     - name: tag and push image to ECR 
       env: 
