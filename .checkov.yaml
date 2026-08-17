@@ -1,0 +1,13 @@
+skip-check:
+  - CKV_AWS_150
+  - CKV_AWS_91
+  - CKV_AWS_18
+  - CKV2_AWS_28
+  - CKV_AWS_158
+  - CKV_AWS_338
+  - CKV_AWS_144
+  - CKV2_AWS_11
+  - CKV2_AWS_62
+  - CKV_DOCKER_2
+  - CKV_GHA_7
+
