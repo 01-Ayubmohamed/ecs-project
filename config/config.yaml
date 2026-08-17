@@ -11,7 +11,7 @@ endpoints:
   - name: Github
     group: External
     url: "https://github.com/"
-    interval: 5m
+    interval: 60s
     conditions:
       - "[STATUS] == 200"
       - "[BODY] == pat(*GitHub*)"
@@ -21,8 +21,25 @@ endpoints:
   - name: Terraform-Registry
     group: External
     url: "https://registry.terraform.io/"
-    interval: 5m
+    interval: 60s
     conditions:
       - "[STATUS] == 200"
       - "[BODY] == pat(*Terraform*)"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Docker Hub
+    group: External
+    url: "https://hub.docker.com/"
+    interval: 60s 
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY] == pat(*Docker*)"
+      - "[CERTIFICATE_EXPIRATION] > 48h"  
+
+  - name: Premier League 
+    group: External
+    url: "https://www.premierleague.com/"
+    interval: 10m
+    conditions: 
+      - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
