@@ -27,10 +27,10 @@ jobs:
 
             steps:
                 - name: Checkout repository
-                  uses: actions/checkout@v7
+                  uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
 
                 - name: Configure AWS credentials (OIDC)
-                  uses: aws-actions/configure-aws-credentials@v6
+                  uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c
                   with:
                       role-to-assume: ${{ secrets.TERRAFORM_ROLE_ARN }}
                       aws-region: ${{ vars.AWS_REGION }}
@@ -39,7 +39,7 @@ jobs:
                 
 
                 - name: Set up Terraform
-                  uses: hashicorp/setup-terraform@v4
+                  uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
                   with:
                       terraform_version: "~1.15.0"
 
@@ -54,7 +54,7 @@ jobs:
 
 
                 - name: Setup TFlint 
-                  uses: terraform-linters/setup-tflint@v6
+                  uses: terraform-linters/setup-tflint@6e1e0642c0289bd619021bf6b34e3c08ed1e005a
                   with:
                       tflint_version: v0.64.0
 
@@ -63,17 +63,16 @@ jobs:
                   run: tflint --init && tflint
 
                 - name: Security Scan 
-                  uses: bridgecrewio/checkov-action@v12
+                  uses: bridgecrewio/checkov-action@1246d92f57abae29d5db5f9aeeed2a9813e52d7d
                   with:
                     directory: ${{ github.workspace }}
                     soft_fail: true
-                    skip_check: CKV_AWS_150,CKV_AWS_91,CKV_AWS_18,CKV2_AWS_28,CKV_AWS_158,CKV_AWS_338,CKV_AWS_144,CKV2_AWS_11,CKV2_AWS_62,CKV_DOCKER_2,CKV_GHA_7
 
                 - name: Terraform Plan
                   run: terraform plan -out=tfplan
                 
                 - name: Upload Terraform Plan
-                  uses: actions/upload-artifact@v7
+                  uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
                   with:
                       name: tfplan
                       path: ./infra/tfplan
@@ -89,16 +88,16 @@ jobs:
 
             steps:
                 - name: Checkout repository
-                  uses: actions/checkout@v7
+                  uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
                 - name: Configure AWS credentials (OIDC)
-                  uses: aws-actions/configure-aws-credentials@v6
+                  uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c
                   with:
                       role-to-assume: ${{ secrets.TERRAFORM_ROLE_ARN }}
                       aws-region: ${{ vars.AWS_REGION }}
 
                 - name: Set up Terraform
-                  uses: hashicorp/setup-terraform@v4
+                  uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
                   with:
                       terraform_version: "~1.15.0"
 
@@ -106,7 +105,7 @@ jobs:
                   run: terraform init
 
                 - name: Download Terraform Plan
-                  uses: actions/download-artifact@v7
+                  uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
                   with:
                       name: tfplan
                       path: infra
