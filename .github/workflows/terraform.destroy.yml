@@ -26,6 +26,7 @@ jobs:
                 working-directory: ./infra
         steps:
             - name: Verify Confirmation
+              working-directory: .
               env:
                 CONFIRM_INPUT: ${{ github.event.inputs.confirm }}
               run: |
