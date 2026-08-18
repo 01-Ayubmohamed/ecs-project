@@ -231,19 +231,19 @@ terraform destroy
 ## Screenshots 
 
 ![Docker Image Size](Images/gatus-docker-image.png)
-* Docker Image Size is 13.3MB, a minimal image
+* Docker Image Size is 13.3MB, a minimal image.
 
-![Branch Protection](Images/Branch_Protection.png)
-* Branch protection to stop any changes made from `main`
+![Branch Protection](Images/Branch-Protection.png)
+* Branch protection to stop any changes made from `main`.
 
 ![Terraform Pipeline](Images/gatus-terraform-pipeline.png)
-* Terraform plan and Apply Pipeline runs successfully
+* Terraform plan and Apply Pipeline runs successfully.
 
 ![Build Pipeline](Images/gatus-build-pipeline.png)
-* Build Pipeline tags with commit SHA and pushes image to ECR 
+* Build Pipeline tags with commit SHA and pushes image to ECR.
 
 ![Deploy Pipeline](Images/gatus-deploy-pipeline.png)
 * Deploy Pipeline downloads and renders task definitions before deploying to ECS.
 
 ![Destroy Pipeline](Images/gatus-destroy-pipeline.png)
-* Destroy Pipeline, a successful removal of all resource. 
+* Destroy Pipeline, a successful removal of all resources. 
