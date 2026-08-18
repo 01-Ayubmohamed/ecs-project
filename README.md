@@ -2,14 +2,13 @@
 
 ## Overview
 
-This project delivers a monitoring app, containerised and hosted on AWS, provisioned using Terraform infrastructure-as-code (IaC). The app is deployed via GitHub Actions and is accessible through a custom domain hosted on Route 53.  
+This project delivers a Gatus monitoring application, hosted on AWS, provisioned using Terraform infrastructure-as-code (IaC), and deployed via GitHub Actions. This introduces a highly available, fault-tolerant architecture, with a custom domain resolved through Route 53.  
 
 ## Architecture
 
 ![Architecture Diagram](Images/gatus-architecture.png)
 
 ## Live Demo
-
 
 https://github.com/user-attachments/assets/de26553d-df30-4a47-a1b8-205add41835c
 
@@ -18,7 +17,7 @@ https://github.com/user-attachments/assets/de26553d-df30-4a47-a1b8-205add41835c
 
 * **Two Stage Terraform Split:** Terraform is split into two stages to tackle the circular dependency, or chicken-and-egg problem. `bootstrap` (state bucket, ECR, IAM, and OpenID Connect provider (OIDC)) and `infra` (VPC, ALB, ACM, ECS) are split. Terraform pipelines need a remote state bucket, but that same pipeline needs to run/manage infrastructure. To solve this, `bootstrap` is applied once manually to create a base resource, then everything in `infra` runs through CI/CD.
 
-* **CI/CD Authentication:** Every pipeline (build, deploy, terraform) is authenticated through AWS via GitHub using short-lived access tokens (OIDC). Each role is scoped to the exact permission required, following Role-Based Access Control (RBAC) protocols. Invisible weaknesses inside the cloud environment are avoided by having no static AWS credentials within the repository.  
+* **CI/CD Authentication:** Every pipeline (build, deploy, terraform) is authenticated through AWS via GitHub using short-lived access tokens (OIDC). Each role is scoped to the exact permission required, following Role-Based Access Control (RBAC) protocols. Invisible weaknesses in the cloud environment are avoided by not storing static AWS credentials in the repository. 
 
 * **Immutable SHA Tagged Images:** ECR images are identified by a tag, a function that works as a pointer to the latest version, whereas commit SHA tags an image with a unique identifier. Implementing commit SHA tags means any image can be traced back to exact commits, making rollback and debugging easier. `image_tag_mutability` is added as a safety measure to block any tag from being overwritten once pushed.  
 
@@ -39,7 +38,6 @@ https://github.com/user-attachments/assets/de26553d-df30-4a47-a1b8-205add41835c
 │       ├── terraform.yml
 │       └── terraform.destroy.yml
 ├── Images/
-│   └── gatus-architecture.png
 ├── app/
 ├── bootstrap/
 │   ├── main.tf
@@ -73,7 +71,7 @@ https://github.com/user-attachments/assets/de26553d-df30-4a47-a1b8-205add41835c
 
 ## Security
 
-* **OIDC Over Static Credentials:** GitHub’s OIDC provider is used to authenticate pipelines, by using a short-lived access token that expires after a short period. Each role is permission-specific and scoped to exactly what is required.  
+* **OIDC Over Static Credentials:** GitHub’s OIDC provider is used to authenticate pipelines, by using a short-lived access token that expires after a period. Each role is permission-specific and scoped to exactly what is required.  
 
 * **Scanned Before It Ships:** For security, this project implements two layers of scanning before shipping. Grype evaluates the image for vulnerabilities during the build, while Checkov scans Terraform IaC for security misconfiguration and compliance issues.   
 
@@ -99,7 +97,7 @@ https://github.com/user-attachments/assets/de26553d-df30-4a47-a1b8-205add41835c
 
 - `CKV_DOCKER_2` is triggered when a Dockerfile is missing a HEALTHCHECK. Since the final stage build is designed to be minimal and has no shell to run one, health is instead verified by the ALB target group's own health checks.
 
-- `CKV_GHA_7` is a Checkov warning concerning destroy workflow confirmation input. This is an intended configuration and not a flaw requiring change. A yes input before destroy commences is a safety measure to avoid accidental destruction of infrastructure. As extra security, input is passed as an environment variable, where the input data is treated as data to be compared and never as text syntax spliced into the script to be executed as code. 
+- `CKV_GHA_7` is a Checkov warning concerning destroy workflow confirmation input. This is an intended configuration and not a flaw requiring change. A `yes` input before destroy commences is a safety measure to avoid accidental destruction of infrastructure. As extra security, input is passed as an environment variable, where the input data is treated as data to be compared and never as text syntax spliced into the script to be executed as code. 
 
 - CloudWatch log group encryption uses the default rather than a CMK (`CKV_AWS_158`). Unlike S3 and ECR, which have a free AWS Managed key available, CloudWatch Logs would need a dedicated key and key policy for real ongoing cost.
 
@@ -224,8 +222,27 @@ terraform destroy
 
 * **Prometheus and Grafana for Monitoring:** Offers a more robust monitoring service in comparison to CloudWatch. Better querying, comprehensive dashboards, and systematic alerting systems.   
 
-* **AWS WAF for edge protection:** Integrating AWS WAF on top of the ALB would provide edge protection, filtering out SQL injections, cross-site scripting and bad IP addresses from incoming web traffic. 
+* **AWS WAF for Edge Protection:** Integrating AWS WAF on top of the ALB would provide edge protection, filtering out SQL injections, cross-site scripting and bad IP addresses from incoming web traffic. 
 
 * **AWS GuardDuty:** Enhances security by applying anomaly and threat detection services. It continuously monitors VPC and DNS logs and offers malware protection.
 
-* **VPC Gateway and Interface Endpoints:** Add gateway endpoint for S3 and interface endpoints for ECR and CloudWatch, this would allow VPC resources to connect to services privately without using the NAT Gateway. Interface Endpoints (ECR, CloudWatch) would incur small charges while keeping traffic off the NAT Gateway. Gateway endpoints (S3) come with no extra cost and increased security. 
+* **VPC Gateway and Interface Endpoints:** Add a gateway endpoint for S3 and interface endpoints for ECR and CloudWatch; this would allow VPC resources to connect to services privately without using the NAT Gateway. Interface Endpoints (ECR, CloudWatch) would incur small charges while keeping traffic off the NAT Gateway. Gateway endpoints (S3) come with no extra cost and increased security.
+
+## Screenshots 
+
+![Docker Image Size](Images/gatus-docker-image.png)
+* Docker Image Size is 13.3MB, a minimal image
+
+![Branch Protection](Images/Branch_Protection.png)
+
+![Terraform Pipeline](Images/gatus-terraform-pipeline.png)
+* Terraform plan and Apply Pipeline runs successfully
+
+![Build Pipeline](Images/gatus-build-pipeline.png)
+* Build Pipeline tags with commit SHA and pushes image to ECR 
+
+![Deploy Pipeline](Images/gatus-deploy-pipeline.png)
+* Deploy Pipeline downloads and renders task definitions before deploying to ECS.
+
+![Destroy Pipeline](Images/gatus-destroy-pipeline.png)
+* Destroy Pipeline, a successful removal of all resource. 
