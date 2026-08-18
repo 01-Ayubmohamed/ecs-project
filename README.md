@@ -234,6 +234,7 @@ terraform destroy
 * Docker Image Size is 13.3MB, a minimal image
 
 ![Branch Protection](Images/Branch_Protection.png)
+* Branch protection to stop any changes made from `main`
 
 ![Terraform Pipeline](Images/gatus-terraform-pipeline.png)
 * Terraform plan and Apply Pipeline runs successfully
