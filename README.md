@@ -10,6 +10,10 @@ This project delivers a monitoring app, containerised and hosted on AWS, provisi
 
 ## Live Demo
 
+
+https://github.com/user-attachments/assets/de26553d-df30-4a47-a1b8-205add41835c
+
+
 ## Design Features
 
 * **Two Stage Terraform Split:** Terraform is split into two stages to tackle the circular dependency, or chicken-and-egg problem. `bootstrap` (state bucket, ECR, IAM, and OpenID Connect provider (OIDC)) and `infra` (VPC, ALB, ACM, ECS) are split. Terraform pipelines need a remote state bucket, but that same pipeline needs to run/manage infrastructure. To solve this, `bootstrap` is applied once manually to create a base resource, then everything in `infra` runs through CI/CD.
