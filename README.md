@@ -1,4 +1,10 @@
 # Self-Hosted Gatus Monitoring on AWS ECS Fargate
+# Self-Hosted Gatus Monitoring on AWS ECS Fargate
+![Terraform](https://img.shields.io/badge/Terraform-844FBA?logo=terraform&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-FF9900?logo=amazonaws&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![CI/CD](https://img.shields.io/badge/GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)
+![OIDC](https://img.shields.io/badge/OIDC-2E8B57?logo=github&logoColor=white)
 
 ## Overview
 
