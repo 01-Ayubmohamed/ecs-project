@@ -46,7 +46,14 @@ jobs:
         run: |
           echo "uri=$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
         
-        
+      
+      - name: wait for ECS service to initialise 
+        run: |
+          aws ecs wait services-stable \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --services ${{ env.ECS_SERVICE }}
+
+
       - name: Download task definition
         run: |
           aws ecs describe-task-definition --task-definition ${{ env.CONTAINER_NAME }}-task \
