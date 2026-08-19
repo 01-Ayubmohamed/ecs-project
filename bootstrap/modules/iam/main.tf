@@ -254,6 +254,7 @@ data "aws_iam_policy_document" "terraform_iam_management" {
       "iam:DetachRolePolicy",
       "iam:ListRolePolicies",
       "iam:ListAttachedRolePolicies",
+      "iam:ListInstanceProfilesForRole",
       "iam:PassRole",
     ]
     resources = [
