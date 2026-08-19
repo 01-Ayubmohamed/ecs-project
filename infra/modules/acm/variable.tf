@@ -10,8 +10,8 @@ variable "domain_name" {
 }
 
 variable "hosted_zone_name" {
-    description = "Root domain for Route 53 hosted zone"
-    type       = string
+  description = "Root domain for Route 53 hosted zone"
+  type        = string
 
 }
 
