@@ -1,6 +1,4 @@
-
 variable "name" {
-  description = "The name of the IAM role to create"
+  description = "Prefix used to name every resource created"
   type        = string
-  default     = "gatus-iam-role"
 }

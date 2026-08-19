@@ -21,30 +21,30 @@ resource "aws_ecs_cluster_capacity_providers" "gatus_cp" {
   cluster_name = aws_ecs_cluster.gatus_cluster.name
 
   capacity_providers = ["FARGATE", "FARGATE_SPOT"]
-  
-    default_capacity_provider_strategy {
-        base              = 1
-        weight            = 20
-        capacity_provider = "FARGATE"
-}
 
-    default_capacity_provider_strategy {
-        base              = 0
-        weight            = 80
-        capacity_provider = "FARGATE_SPOT"
-}
+  default_capacity_provider_strategy {
+    base              = 1
+    weight            = 20
+    capacity_provider = "FARGATE"
+  }
+
+  default_capacity_provider_strategy {
+    base              = 0
+    weight            = 80
+    capacity_provider = "FARGATE_SPOT"
+  }
 }
 
 
 
 resource "aws_security_group" "ecs_sg" {
-    name        = "${var.name}-ecs-sg"
-    description = "Security group for ECS tasks"
-    vpc_id      =  var.vpc_id
+  name        = "${var.name}-ecs-sg"
+  description = "Security group for ECS tasks"
+  vpc_id      = var.vpc_id
 
 
   ingress {
-    from_port       = var.container_port 
+    from_port       = var.container_port
     to_port         = var.container_port
     protocol        = "tcp"
     security_groups = [var.alb_sg]
@@ -52,11 +52,11 @@ resource "aws_security_group" "ecs_sg" {
   }
 
   egress {
-  from_port   = 443
-  to_port     = 443
-  protocol    = "tcp"
-  cidr_blocks = ["0.0.0.0/0"]
-  description = "Allow outbound HTTPS traffic"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow outbound HTTPS traffic"
   }
 
   tags = {
@@ -121,12 +121,12 @@ resource "aws_ecs_service" "gatus_service" {
   }
 
   lifecycle {
-    ignore_changes = [task_definition, desired_count,]
+    ignore_changes = [task_definition, desired_count, ]
   }
 
   network_configuration {
-    subnets         = var.subnet_ids
-    security_groups = [aws_security_group.ecs_sg.id]
+    subnets          = var.subnet_ids
+    security_groups  = [aws_security_group.ecs_sg.id]
     assign_public_ip = false
   }
 

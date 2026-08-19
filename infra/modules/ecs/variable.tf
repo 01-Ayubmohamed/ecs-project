@@ -34,7 +34,7 @@ variable "ecs_task_role_arn" {
 }
 
 variable "name" {
-  description = "Name of the ECS cluster and related resources"
+  description = "Prefix used to name every resource created"
   type        = string
 }
 
