@@ -9,10 +9,9 @@ variable "cidr_block" {
   description = "cidr block for VPC"
 }
 
-
 variable "name" {
-  type = string
-  default = "gatus"
+  description = "Prefix used to name every resource created"
+  type        = string
 }
 
 variable "subnet_ids" {

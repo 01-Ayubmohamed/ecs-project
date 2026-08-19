@@ -7,7 +7,6 @@ variable "aws_region" {
 variable "name" {
   description = "Prefix used to name every resource created"
   type        = string
-  default     = "gatus"
 }
 
 variable "bucket_name" {

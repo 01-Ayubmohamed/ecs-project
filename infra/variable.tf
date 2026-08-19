@@ -1,11 +1,12 @@
 variable "aws_region" {
+  description = "AWS region for the resources" 
   type        = string
-  description = "AWS region for the resources"
+
 }
 
 variable "cidr_block" {
-  type        = string
   description = "cidr block for VPC"
+  type        = string
 }
 
 variable "public_subnets" {
@@ -22,11 +23,9 @@ variable "private_subnets" {
 }
 
 variable "name" {
-  type    = string
-  default = "gatus"
+  description = "Prefix used to name every resource created"
+  type        = string
 }
-
-
 
 variable "alb_sg" {
   description = "List of security group rules for ALB"

@@ -18,6 +18,6 @@ variable "private_subnets" {
 }
 
 variable "name" {
-  type = string
-  default = "gatus"
+  description = "Prefix used to name every resource created"
+  type        = string
 }
