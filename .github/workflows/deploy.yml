@@ -47,11 +47,15 @@ jobs:
           echo "uri=$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
         
       
-      - name: wait for ECS service to initialise 
+      - name: wait for ECS service to stabilise  
         run: |
-          aws ecs wait services-stable \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --services ${{ env.ECS_SERVICE }}
+          timeout 300 bash -c '
+            until aws ecs wait services-stable --cluster ${{ env.ECS_CLUSTER }} --services ${{ env.ECS_SERVICE }} 2>/dev/null; do
+              echo "ECS service is not stable for deployment"
+              sleep 15
+            done
+            echo "ECS service is stable and ready for deployment"
+          '
 
 
       - name: Download task definition
