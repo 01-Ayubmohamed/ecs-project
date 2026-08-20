@@ -32,7 +32,7 @@ https://github.com/user-attachments/assets/de26553d-df30-4a47-a1b8-205add41835c
 
 * **CI/CD Authentication:** Every pipeline (build, deploy, terraform) is authenticated through AWS via GitHub using short-lived access tokens (OIDC). Each role is scoped to the exact permission required, following Role-Based Access Control (RBAC) protocols. Vulnerabilities and flaws in the cloud environment are avoided by not storing static AWS credentials in the repository. 
 
-* **Health Gate for ECS Deployment:** A Health Gate in `deploy.yml` checks if ECS service exists and is stable, before initialising deployment. `build.yml` and `terraform.yml` create infrastructure and an image simultaneously, causing deploy.yml to run ahead and return “/gatus-service is MISSING”. A feature similar to ArgoCD's (sync wave) is introduced. Deployment is suspended until the wait for the ECS service stage returns “ECS service is stable and ready for deployment”. This increased the wait time to more than double (from 3m 52s to 8m 47s) but ensured a successful deployment.
+* **Health Gate for ECS Deployment:** A Health Gate in `deploy.yml` checks if ECS service exists and is stable, before initialising deployment. `build.yml` and `terraform.yml` create infrastructure and an image simultaneously, causing deploy.yml to run ahead and return “/gatus-service is MISSING”. A feature similar to ArgoCD's (sync wave) is introduced. Deployment is suspended until the wait for the ECS service stage returns “ECS service is stable and ready for deployment”. This increased the wait time to more than double (from 3m 52s to 8m 51s) but ensured a successful deployment.
 
 ## Project Layout
 
@@ -257,7 +257,7 @@ terraform destroy
 
 ---
 
-### Deploy Pipeline downloads and renders task definitions before deploying to ECS.
+### Deploy Pipeline with Health Gate for stable ECS service before deployment. 
 ![Deploy Pipeline](Images/gatus-deploy-pipeline.png)
 
 ---
