@@ -1,5 +1,4 @@
 # Self-Hosted Gatus Monitoring on AWS ECS Fargate
-# Self-Hosted Gatus Monitoring on AWS ECS Fargate
 ![Terraform](https://img.shields.io/badge/Terraform-844FBA?logo=terraform&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS-FF9900?logo=amazonaws&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
@@ -23,15 +22,17 @@ https://github.com/user-attachments/assets/de26553d-df30-4a47-a1b8-205add41835c
 
 * **Two Stage Terraform Split:** Terraform is split into two stages to tackle the circular dependency, or chicken-and-egg problem. `bootstrap` (state bucket, ECR, IAM, and OpenID Connect provider (OIDC)) and `infra` (VPC, ALB, ACM, ECS) are split. Terraform pipelines need a remote state bucket, but that same pipeline needs to run/manage infrastructure. To solve this, `bootstrap` is applied once manually to create a base resource, then everything in `infra` runs through CI/CD.
 
-* **CI/CD Authentication:** Every pipeline (build, deploy, terraform) is authenticated through AWS via GitHub using short-lived access tokens (OIDC). Each role is scoped to the exact permission required, following Role-Based Access Control (RBAC) protocols. Invisible weaknesses in the cloud environment are avoided by not storing static AWS credentials in the repository. 
-
-* **Immutable SHA Tagged Images:** ECR images are identified by a tag, a function that works as a pointer to the latest version, whereas commit SHA tags an image with a unique identifier. Implementing commit SHA tags means any image can be traced back to exact commits, making rollback and debugging easier. `image_tag_mutability` is added as a safety measure to block any tag from being overwritten once pushed.  
-
-* **Minimal Attack Surface:** The final image builds `FROM scratch`, a reserved image that tells the build process to start an empty container, with no folders, packages and shell. It also runs as a non root user, a fundamental security approach that limits the blast radius of the container. 
-
 * **High Availability, Secure Routing:** The ECS service distributes the workload across two Availability Zones (AZs), behind an Application Load Balancer (ALB). HTTP is redirected to HTTPS via ALB listener rules and authenticated by an SSL/TLS certificate. This is provisioned by AWS Certificate Manager (ACM) and validated by Route 53. Security groups are tightly asymmetric, meaning the ALB can reach the tasks, while the tasks can only reach approved ports. 
 
 * **Fault Tolerance:** One regional NAT Gateway is provisioned for multi-AZ infrastructure, rather than a zonal NAT Gateway. This achieves fault tolerance by automatically expanding to AZs where workloads run, while maintaining architectural simplicity. 
+
+* **Minimal Attack Surface:** The final image builds `FROM scratch`, a reserved image that tells the build process to start an empty container, with no folders, packages and shell. It also runs as a non root user, a fundamental security approach that limits the blast radius of the container. 
+
+* **Immutable SHA Tagged Images:** ECR images are identified by a tag, a function that works as a pointer to the latest version, whereas commit SHA tags an image with a unique identifier. Implementing commit SHA tags means any image can be traced back to exact commits, making rollback and debugging easier. `image_tag_mutability` is added as a safety measure to block any tag from being overwritten once pushed.  
+
+* **CI/CD Authentication:** Every pipeline (build, deploy, terraform) is authenticated through AWS via GitHub using short-lived access tokens (OIDC). Each role is scoped to the exact permission required, following Role-Based Access Control (RBAC) protocols. Vulnerabilities and flaws in the cloud environment are avoided by not storing static AWS credentials in the repository. 
+
+* **Health Gate for ECS Deployment:** A Health Gate in `deploy.yml` checks if ECS service exists and is stable, before initialising deployment. `build.yml` and `terraform.yml` create infrastructure and an image simultaneously, causing deploy.yml to run ahead and return “/gatus-service is MISSING”. A feature similar to ArgoCD's (sync wave) is introduced. Deployment is suspended until the wait for the ECS service stage returns “ECS service is stable and ready for deployment”. This increased the wait time to more than double (from 3m 52s to 8m 47s) but ensured a successful deployment.
 
 ## Project Layout
 
@@ -69,6 +70,7 @@ https://github.com/user-attachments/assets/de26553d-df30-4a47-a1b8-205add41835c
 │       ├── alb/
 │       ├── ecs/
 │       └── iam/
+├── .checkov.yaml      
 ├── .dockerignore
 ├── .gitignore
 ├── Dockerfile
@@ -103,7 +105,7 @@ https://github.com/user-attachments/assets/de26553d-df30-4a47-a1b8-205add41835c
 
 - `CKV_DOCKER_2` is triggered when a Dockerfile is missing a HEALTHCHECK. Since the final stage build is designed to be minimal and has no shell to run one, health is instead verified by the ALB target group's own health checks.
 
-- `CKV_GHA_7` is a Checkov warning concerning destroy workflow confirmation input. This is an intended configuration and not a flaw requiring change. A `yes` input before destroy commences is a safety measure to avoid accidental destruction of infrastructure. As extra security, input is passed as an environment variable, where the input data is treated as data to be compared and never as text syntax spliced into the script to be executed as code. 
+- `CKV_GHA_7` is a Checkov warning for the `terraform.destroy.yml` workflow event trigger. This is an intended configuration and not a flaw requiring change. A `yes` input before destroy commences is a safety measure to avoid accidental destruction of infrastructure. As extra security, the input is passed as an environment variable, where the input data is treated as data to be compared and never as text syntax spliced into the script to be executed as code. 
 
 - CloudWatch log group encryption uses the default rather than a CMK (`CKV_AWS_158`). Unlike S3 and ECR, which have a free AWS Managed key available, CloudWatch Logs would need a dedicated key and key policy for real ongoing cost.
 
@@ -235,21 +237,31 @@ terraform destroy
 * **VPC Gateway and Interface Endpoints:** Add a gateway endpoint for S3 and interface endpoints for ECR and CloudWatch; this would allow VPC resources to connect to services privately without using the NAT Gateway. Interface Endpoints (ECR, CloudWatch) would incur small charges while keeping traffic off the NAT Gateway. Gateway endpoints (S3) come with no extra cost and increased security.
 
 ## Screenshots 
-
+### Docker Image Size is 13.3MB, a minimal image.
 ![Docker Image Size](Images/gatus-docker-image.png)
-* Docker Image Size is 13.3MB, a minimal image.
 
+---
+
+### Branch protection to stop any changes made from `main`.
 ![Branch Protection](Images/Branch-Protection.png)
-* Branch protection to stop any changes made from `main`.
 
+---
+
+### Terraform plan and Apply Pipeline runs successfully.
 ![Terraform Pipeline](Images/gatus-terraform-pipeline.png)
-* Terraform plan and Apply Pipeline runs successfully.
 
+---
+
+### Build Pipeline tags with commit SHA and pushes image to ECR.
 ![Build Pipeline](Images/gatus-build-pipeline.png)
-* Build Pipeline tags with commit SHA and pushes image to ECR.
 
+---
+
+### Deploy Pipeline downloads and renders task definitions before deploying to ECS.
 ![Deploy Pipeline](Images/gatus-deploy-pipeline.png)
-* Deploy Pipeline downloads and renders task definitions before deploying to ECS.
 
+---
+
+### Destroy Pipeline, a successful removal of all resources.
 ![Destroy Pipeline](Images/gatus-destroy-pipeline.png)
-* Destroy Pipeline, a successful removal of all resources. 
+ 
