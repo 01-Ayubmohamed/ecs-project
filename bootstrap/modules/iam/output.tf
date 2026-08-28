@@ -1,5 +1,5 @@
 output "build_role_arn" {
-  value      = aws_iam_role.build.arn
+  value       = aws_iam_role.build.arn
   description = "ARN for build.yml assumes to build, scan, and push the Docker image"
 }
 

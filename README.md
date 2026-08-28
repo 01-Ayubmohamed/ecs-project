@@ -7,7 +7,7 @@
 
 ## Overview
 
-This project delivers a Gatus monitoring application, hosted on AWS, provisioned using Terraform infrastructure-as-code (IaC), and deployed via GitHub Actions. This introduces a highly available, fault-tolerant architecture, with a custom domain resolved through Route 53.  
+This project delivers a Gatus monitoring application, hosted on AWS, provisioned using Terraform infrastructure-as-code (IaC), and deployed via GitHub Actions. This introduces a highly available, fault-tolerant architecture, with a custom domain resolved through Route 53.
 
 ## Architecture
 
@@ -22,15 +22,15 @@ https://github.com/user-attachments/assets/de26553d-df30-4a47-a1b8-205add41835c
 
 * **Two Stage Terraform Split:** Terraform is split into two stages to tackle the circular dependency, or chicken-and-egg problem. `bootstrap` (state bucket, ECR, IAM, and OpenID Connect provider (OIDC)) and `infra` (VPC, ALB, ACM, ECS) are split. Terraform pipelines need a remote state bucket, but that same pipeline needs to run/manage infrastructure. To solve this, `bootstrap` is applied once manually to create a base resource, then everything in `infra` runs through CI/CD.
 
-* **High Availability, Secure Routing:** The ECS service distributes the workload across two Availability Zones (AZs), behind an Application Load Balancer (ALB). HTTP is redirected to HTTPS via ALB listener rules and authenticated by an SSL/TLS certificate. This is provisioned by AWS Certificate Manager (ACM) and validated by Route 53. Security groups are tightly asymmetric, meaning the ALB can reach the tasks, while the tasks can only reach approved ports. 
+* **High Availability, Secure Routing:** The ECS service distributes the workload across two Availability Zones (AZs), behind an Application Load Balancer (ALB). HTTP is redirected to HTTPS via ALB listener rules and authenticated by an SSL/TLS certificate. This is provisioned by AWS Certificate Manager (ACM) and validated by Route 53. Security groups are tightly asymmetric, meaning the ALB can reach the tasks, while the tasks can only reach approved ports.
 
-* **Fault Tolerance:** One regional NAT Gateway is provisioned for multi-AZ infrastructure, rather than a zonal NAT Gateway. This achieves fault tolerance by automatically expanding to AZs where workloads run, while maintaining architectural simplicity. 
+* **Fault Tolerance:** One regional NAT Gateway is provisioned for multi-AZ infrastructure, rather than a zonal NAT Gateway. This achieves fault tolerance by automatically expanding to AZs where workloads run, while maintaining architectural simplicity.
 
-* **Minimal Attack Surface:** The final image builds `FROM scratch`, a reserved image that tells the build process to start an empty container, with no folders, packages and shell. It also runs as a non root user, a fundamental security approach that limits the blast radius of the container. 
+* **Minimal Attack Surface:** The final image builds `FROM scratch`, a reserved image that tells the build process to start an empty container, with no folders, packages and shell. It also runs as a non root user, a fundamental security approach that limits the blast radius of the container.
 
-* **Immutable SHA Tagged Images:** ECR images are identified by a tag, a function that works as a pointer to the latest version, whereas commit SHA tags an image with a unique identifier. Implementing commit SHA tags means any image can be traced back to exact commits, making rollback and debugging easier. `image_tag_mutability` is added as a safety measure to block any tag from being overwritten once pushed.  
+* **Immutable SHA Tagged Images:** ECR images are identified by a tag, a function that works as a pointer to the latest version, whereas commit SHA tags an image with a unique identifier. Implementing commit SHA tags means any image can be traced back to exact commits, making rollback and debugging easier. `image_tag_mutability` is added as a safety measure to block any tag from being overwritten once pushed.
 
-* **CI/CD Authentication:** Every pipeline (build, deploy, terraform) is authenticated through AWS via GitHub using short-lived access tokens (OIDC). Each role is scoped to the exact permission required, following Role-Based Access Control (RBAC) protocols. Vulnerabilities and flaws in the cloud environment are avoided by not storing static AWS credentials in the repository. 
+* **CI/CD Authentication:** Every pipeline (build, deploy, terraform) is authenticated through AWS via GitHub using short-lived access tokens (OIDC). Each role is scoped to the exact permission required, following Role-Based Access Control (RBAC) protocols. Vulnerabilities and flaws in the cloud environment are avoided by not storing static AWS credentials in the repository.
 
 * **Health Gate for ECS Deployment:** A Health Gate in `deploy.yml` checks if ECS service exists and is stable, before initialising deployment. `build.yml` and `terraform.yml` create infrastructure and an image simultaneously, causing deploy.yml to run ahead and return “/gatus-service is MISSING”. A feature similar to ArgoCD's (sync wave) is introduced. Deployment is suspended until the wait for the ECS service stage returns “ECS service is stable and ready for deployment”. This increased the wait time to more than double (from 3m 52s to 8m 51s) but ensured a successful deployment.
 
@@ -70,42 +70,43 @@ https://github.com/user-attachments/assets/de26553d-df30-4a47-a1b8-205add41835c
 │       ├── alb/
 │       ├── ecs/
 │       └── iam/
-├── .checkov.yaml      
+├── .checkov.yaml
 ├── .dockerignore
 ├── .gitignore
+├── .pre-commit-config.yaml
 ├── Dockerfile
 └── README.md
 ```
 
 ## Security
 
-* **OIDC Over Static Credentials:** GitHub’s OIDC provider is used to authenticate pipelines, by using a short-lived access token that expires after a period. Each role is permission-specific and scoped to exactly what is required.  
+* **OIDC Over Static Credentials:** GitHub’s OIDC provider is used to authenticate pipelines, by using a short-lived access token that expires after a period. Each role is permission-specific and scoped to exactly what is required.
 
-* **Scanned Before It Ships:** For security, this project implements two layers of scanning before shipping. Grype evaluates the image for vulnerabilities during the build, while Checkov scans Terraform IaC for security misconfiguration and compliance issues.   
+* **Scanned Before It Ships:** For security, this project implements two layers of scanning before shipping. Grype evaluates the image for vulnerabilities during the build, while Checkov scans Terraform IaC for security misconfiguration and compliance issues.
 
-* **Encryption at Rest:** This project applies AWS Managed Keys to encrypt the Terraform state bucket and ECR repository. 
+* **Encryption at Rest:** This project applies AWS Managed Keys to encrypt the Terraform state bucket and ECR repository.
 
-* **TLS Enforced at the Load Balancer:** The ALB uses the latest modern policy, TLS 1.3, with 1.2 as a fallback. This version is faster by cutting setup time and blocking obsolete ciphers. 
+* **TLS Enforced at the Load Balancer:** The ALB uses the latest modern policy, TLS 1.3, with 1.2 as a fallback. This version is faster by cutting setup time and blocking obsolete ciphers.
 
-* **Locked Down VPC:** The default VPC security group assigned by AWS is updated to remove all permissive rules. `public_subnets` set `map_public_ip_on_launch = false`, blocking default public IPs. ALB and ECS security groups are tightly scoped to the traffic required. 
+* **Locked Down VPC:** The default VPC security group assigned by AWS is updated to remove all permissive rules. `public_subnets` set `map_public_ip_on_launch = false`, blocking default public IPs. ALB and ECS security groups are tightly scoped to the traffic required.
 
-* **Branch Protection:** Branch protection restrictions and rules were applied to safeguard changes to `main`. PRs need to pass checks before anything is integrated into `main`. This blocks force pushes, branch deletion and live infrastructure changes without verification. 
+* **Branch Protection:** Branch protection restrictions and rules were applied to safeguard changes to `main`. PRs need to pass checks before anything is integrated into `main`. This blocks force pushes, branch deletion and live infrastructure changes without verification.
 
 ## Cost Optimisations
 
-- ECS Fargate was selected instead of EC2 for easier management of provisioning, scaling, and costs. With Fargate, you avoid operational overhead costs for idle capacity and server maintenance while gaining automated task-level scaling. 
+- ECS Fargate was selected instead of EC2 for easier management of provisioning, scaling, and costs. With Fargate, you avoid operational overhead costs for idle capacity and server maintenance while gaining automated task-level scaling.
 
-- ECR (SHA tagged images), S3 (Terraform state versions) and CloudWatch (logs) all have data billed for storage. Each resource has a lifecycle policy that triggers data deletion and expiration after a set number of days. 
+- ECR (SHA tagged images), S3 (Terraform state versions) and CloudWatch (logs) all have data billed for storage. Each resource has a lifecycle policy that triggers data deletion and expiration after a set number of days.
 
-- AWS Managed KMS keys are used instead of Customer Managed Keys (CMK), avoiding the charge incurred per key used. 
+- AWS Managed KMS keys are used instead of Customer Managed Keys (CMK), avoiding the charge incurred per key used.
 
-## Known Limitations and Trade Offs 
+## Known Limitations and Trade Offs
 
 - `CKV_AWS_150` is a Checkov security warning that checks if the ALB has deletion protection. Enabling this protection would block the Terraform destroy pipeline, undermining our aim for an on demand teardown.
 
 - `CKV_DOCKER_2` is triggered when a Dockerfile is missing a HEALTHCHECK. Since the final stage build is designed to be minimal and has no shell to run one, health is instead verified by the ALB target group's own health checks.
 
-- `CKV_GHA_7` is a Checkov warning for the `terraform.destroy.yml` workflow event trigger. This is an intended configuration and not a flaw requiring change. A `yes` input before destroy commences is a safety measure to avoid accidental destruction of infrastructure. As extra security, the input is passed as an environment variable, where the input data is treated as data to be compared and never as text syntax spliced into the script to be executed as code. 
+- `CKV_GHA_7` is a Checkov warning for the `terraform.destroy.yml` workflow event trigger. This is an intended configuration and not a flaw requiring change. A `yes` input before destroy commences is a safety measure to avoid accidental destruction of infrastructure. As extra security, the input is passed as an environment variable, where the input data is treated as data to be compared and never as text syntax spliced into the script to be executed as code.
 
 - CloudWatch log group encryption uses the default rather than a CMK (`CKV_AWS_158`). Unlike S3 and ECR, which have a free AWS Managed key available, CloudWatch Logs would need a dedicated key and key policy for real ongoing cost.
 
@@ -226,17 +227,17 @@ terraform destroy
 
 ## Future Improvements
 
-* **Separate Dev and Prod Environments:** One environment currently handles everything. A separate state environment would allow multiple environments to exist concurrently, allowing testing to be done before production. 
+* **Separate Dev and Prod Environments:** One environment currently handles everything. A separate state environment would allow multiple environments to exist concurrently, allowing testing to be done before production.
 
-* **Prometheus and Grafana for Monitoring:** Offers a more robust monitoring service in comparison to CloudWatch. Better querying, comprehensive dashboards, and systematic alerting systems.   
+* **Prometheus and Grafana for Monitoring:** Offers a more robust monitoring service in comparison to CloudWatch. Better querying, comprehensive dashboards, and systematic alerting systems.
 
-* **AWS WAF for Edge Protection:** Integrating AWS WAF on top of the ALB would provide edge protection, filtering out SQL injections, cross-site scripting and bad IP addresses from incoming web traffic. 
+* **AWS WAF for Edge Protection:** Integrating AWS WAF on top of the ALB would provide edge protection, filtering out SQL injections, cross-site scripting and bad IP addresses from incoming web traffic.
 
 * **AWS GuardDuty:** Enhances security by applying anomaly and threat detection services. It continuously monitors VPC and DNS logs and offers malware protection.
 
 * **VPC Gateway and Interface Endpoints:** Add a gateway endpoint for S3 and interface endpoints for ECR and CloudWatch; this would allow VPC resources to connect to services privately without using the NAT Gateway. Interface Endpoints (ECR, CloudWatch) would incur small charges while keeping traffic off the NAT Gateway. Gateway endpoints (S3) come with no extra cost and increased security.
 
-## Screenshots 
+## Screenshots
 ### Docker Image Size is 13.3MB, a minimal image.
 ![Docker Image Size](Images/gatus-docker-image.png)
 
@@ -257,11 +258,10 @@ terraform destroy
 
 ---
 
-### Deploy Pipeline with Health Gate for stable ECS service before deployment. 
+### Deploy Pipeline with Health Gate for stable ECS service before deployment.
 ![Deploy Pipeline](Images/gatus-deploy-pipeline.png)
 
 ---
 
 ### Destroy Pipeline, a successful removal of all resources.
 ![Destroy Pipeline](Images/gatus-destroy-pipeline.png)
- 

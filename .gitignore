@@ -1,3 +1,4 @@
+**/modules/**/.terraform.lock.hcl
 **/.terraform/
 *.tfstate
 *.tfstate.*
@@ -9,5 +10,3 @@ app/web/app/
 .DS_Store
 .vscode/
 .idea/
-
-

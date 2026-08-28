@@ -1,0 +1,42 @@
+exclude: ^app/
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.73.0
+    hooks:
+    - id: terraform_fmt
+      files: ^(infra|bootstrap)/.*\.tf$
+      args:
+        - --args=-no-color
+        - --args=-diff
+    - id: terraform_validate
+      files: ^(infra|bootstrap)/.*\.tf$
+    - id: terraform_checkov
+      files: ^(infra|bootstrap)/.*\.tf$
+      args:
+        - --args=--quiet
+        - --args=--compact
+        - --args=--soft-fail
+
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.9.0
+    hooks:
+      - id: hadolint
+        files: ^Dockerfile$
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.6.11
+    hooks:
+      - id: actionlint
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.2
+    hooks:
+      - id: gitleaks
