@@ -4,9 +4,13 @@ on:
   push:
     branches:
       - main
+    paths:
+        - 'Dockerfile'
+        - 'app/**'
+        - 'config/**'
 
 
-concurrency: 
+concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
 
@@ -14,20 +18,20 @@ permissions:
     id-token: write
     contents: read
 
-  
+
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
   ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
 
 jobs:
  build:
-  name: Build and Push Docker Image 
-  runs-on: ubuntu-latest 
+  name: Build and Push Docker Image
+  runs-on: ubuntu-latest
 
   steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-    
+
     - name: Build Docker image
       run: |
         docker build -t ${{ env.ECR_REPOSITORY }}:${{ github.sha }} -f Dockerfile .
@@ -40,7 +44,7 @@ jobs:
         severity-cutoff: high
         output-format: table
 
-        
+
     - name: Configure AWS credentials (OIDC)
       uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c
       with:
@@ -52,8 +56,8 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64
 
-    - name: tag and push image to ECR 
-      env: 
+    - name: tag and push image to ECR
+      env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
       run: |
           docker tag ${{ env.ECR_REPOSITORY }}:${{ github.sha }} $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
@@ -61,9 +65,3 @@ jobs:
 
           echo "### Image pushed :white_check_mark:" >> $GITHUB_STEP_SUMMARY
           echo "**Image:** $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-
-    
-
-
-
-        

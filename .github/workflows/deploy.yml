@@ -16,10 +16,10 @@ permissions:
 
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
-  ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}       
+  ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
   ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
   ECS_SERVICE: ${{ vars.ECS_SERVICE }}
-  CONTAINER_NAME: ${{ vars.CONTAINER_NAME }} 
+  CONTAINER_NAME: ${{ vars.CONTAINER_NAME }}
   DOMAIN_URL: ${{ vars.DOMAIN_URL }}
 
 jobs:
@@ -45,9 +45,9 @@ jobs:
           ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
         run: |
           echo "uri=$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
-        
-      
-      - name: wait for ECS service to stabilise  
+
+
+      - name: wait for ECS service to stabilise
         run: |
           timeout 300 bash -c '
             until aws ecs wait services-stable --cluster ${{ env.ECS_CLUSTER }} --services ${{ env.ECS_SERVICE }} 2>/dev/null; do
@@ -79,7 +79,7 @@ jobs:
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
 
-      - name: verify Health on deployment 
+      - name: verify Health on deployment
         run: |
           if ! curl -sf ${{ env.DOMAIN_URL }}/health; then
             echo "Health check failed after deployment"

@@ -30,16 +30,16 @@ endpoints:
   - name: Docker Hub
     group: External
     url: "https://hub.docker.com/"
-    interval: 60s 
+    interval: 60s
     conditions:
       - "[STATUS] == 200"
       - "[BODY] == pat(*Docker*)"
-      - "[CERTIFICATE_EXPIRATION] > 48h"  
+      - "[CERTIFICATE_EXPIRATION] > 48h"
 
-  - name: Premier League 
+  - name: Premier League
     group: External
     url: "https://www.premierleague.com/"
     interval: 10m
-    conditions: 
+    conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"

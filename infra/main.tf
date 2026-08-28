@@ -54,5 +54,3 @@ module "IAM" {
   name   = var.name
 
 }
-
-

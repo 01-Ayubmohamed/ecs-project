@@ -1,8 +1,8 @@
 name: Terraform destroy Pipeline
 
 
-on: 
-    workflow_dispatch: 
+on:
+    workflow_dispatch:
         inputs:
             confirm:
                 description: 'Type "yes" to confirm the destroy action'
@@ -17,8 +17,8 @@ permissions:
     id-token: write
     contents: read
 
-jobs: 
-    destroy: 
+jobs:
+    destroy:
         name: Terraform Destroy
         runs-on: ubuntu-latest
         defaults:

@@ -136,4 +136,3 @@ resource "aws_ecs_service" "gatus_service" {
     container_port   = var.container_port
   }
 }
-
